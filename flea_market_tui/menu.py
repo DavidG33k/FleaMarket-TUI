@@ -1,0 +1,127 @@
+from collections import Callable
+from dataclasses import dataclass, field, InitVar
+from typing import List, Dict, Any, Optional
+
+from typeguard import typechecked
+from valid8 import validate
+
+from validation.dataclasses import validate_dataclass
+from validation.regex import pattern
+
+
+@typechecked
+@dataclass(order=True, frozen=True)
+class Description:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('Description.value', self.value, min_len=1, max_len=1000, custom=pattern(r'[0-9A-Za-z ;.,_-]*'))
+
+    def __str__(self):
+        return self.value
+
+@typechecked
+@dataclass(order=True, frozen=True)
+class Key:
+    value: str
+
+    def __post_init__(self):
+        validate_dataclass(self)
+        validate('Key.value', self.value, min_len=1, max_len=10, custom=pattern(r'[0-9A-Za-z_-]*'))
+
+    def __str__(self):
+        return self.value
+
+@typechecked
+@dataclass(frozen=True)
+class Entry:
+    key: Key
+    description: Description
+    on_selected: Callable[[], None] = field(default=lambda: None)
+    is_exit: bool = field(default=False)
+    is_logged: Callable[[], bool] = field(default=lambda: False)  # parte presente solo sul prog di erica
+
+    @staticmethod
+    def create(key: str, description: str, on_selected: Callable[[], None] = lambda: None,
+               is_exit: bool = False, is_logged: Callable[[], bool] = lambda: False) -> 'Entry':
+        return Entry(Key(key), Description(description), on_selected, is_exit, is_logged)  # Anche qui abbiamo aggiunto is_logged
+
+
+@typechecked
+@dataclass(frozen=True)
+class Menu:
+    description: Description
+    auto_select: Callable[[], None] = field(default=lambda: None)
+    __entries: List[Entry] = field(default_factory=list, repr=False, init=False)
+    __key2entry: Dict[Key, Entry] = field(default_factory=dict, repr=False, init=False)
+    create_key: InitVar[Any] = field(default=None)
+
+    def __post_init__(self, create_key: Any):
+        validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
+        validate_dataclass(self)
+
+    def _add_entry(self, value: Entry, create_key: Any) -> None:
+        validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
+        validate('value.key', value.key, custom=lambda v: v not in self.__key2entry)
+        self.__entries.append(value)
+        self.__key2entry[value.key] = value
+
+    def _has_exit(self) -> bool:
+        return bool(list(filter(lambda e: e.is_exit, self.__entries)))
+
+    # Print description, call auto_select, and print all entries
+    def __print(self) -> None:
+        length = len(str(self.description))
+        fmt = '***{}{}{}***'
+        print(fmt.format('*', '*' * length, '*'))
+        print(fmt.format(' ', self.description.value, ' '))
+        print(fmt.format('*', '*' * length, '*'))
+        self.auto_select()
+        for entry in self.__entries:
+            print(f'{entry.key}:\t{entry.description}')
+
+    # Waiting for user choose
+    def __select_from_input(self) -> tuple[bool, bool]:
+        while True:
+            try:
+                line = input("? ")
+                key = Key(line.strip())
+                entry = self.__key2entry[key]
+                entry.on_selected()
+                return entry.is_exit, entry.is_logged()  # is_logged qui
+            except (KeyError, TypeError, ValueError):
+                print('Invalid selection. Please, try again...')
+
+    # Menù loop
+    def run(self) -> tuple[bool, bool]:  # Nel metodo della slide, quindi senza login, ritorno None e alla fine abbiamo solo if is_exit: return. In questo caso dobbiamo capire anche se siamo ancora loggati quindi ci ritorniamo una tupa di bool e la controlliamo fuori!
+        while True:
+            self.__print()
+            is_exit, is_logged = self.__select_from_input()
+            if is_exit or is_logged:
+                return is_exit, is_logged  # is_logged qui
+
+
+@typechecked
+@dataclass()
+class Builder:
+    __menu: Optional['Menu']
+    __create_key = object()
+
+    def __init__(self, description: Description, auto_select: Callable[[], None] = lambda: None):
+        self.__menu = Menu(description, auto_select, self.__create_key)
+
+    @staticmethod
+    def is_valid_key(key: Any) -> bool:
+        return key == Menu.Builder.__create_key
+
+    def with_entry(self, value: Entry) -> 'Menu.Builder':
+        validate('menu', self.__menu)
+        self.__menu._add_entry(value, self.__create_key)
+        return self
+
+    def build(self) -> 'Menu':
+        validate('menu', self.__menu)
+        validate('menu.entries', self.__menu._has_exit(), equals=True)
+        res, self.__menu = self.__menu, None
+        return res
