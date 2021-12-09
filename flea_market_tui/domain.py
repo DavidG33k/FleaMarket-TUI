@@ -11,8 +11,6 @@ from valid8 import ValidationError
 from validation.dataclasses import validate_dataclass
 from validation.regex import pattern
 
-#come rappresento lo user?
-
 
 @typechecked
 @dataclass(frozen=True, order=True)
@@ -21,7 +19,7 @@ class Name:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=1, max_len=25, custom=pattern(r'[A-Za-z0-9 \-\_]+')) #perchè manca la cardinalità e il fine regex $?
+        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'[A-Za-z0-9 \-\_]+'))
 
     def __str__(self):
         return self.value
@@ -34,10 +32,11 @@ class Description:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, max_len=100, custom=pattern(r'[A-Za-z0-9\_\-\(\)\.\,\;\&\:\=\è\'\"\! ]*')) #ma quindi il max lengh a quanto? e sopratutto fa conflitto con il model?
+        validate('value', self.value, max_len=200, custom=pattern(r'[A-Za-z0-9\_\-\(\)\.\,\;\&\:\=\è\'\"\! ]*'))
 
     def __str__(self):
         return str(self.value)
+
 
 @typechecked
 @dataclass(frozen=True, order=True)
@@ -46,7 +45,7 @@ class Condition:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, max_len=25, custom=pattern(r'^(AS_NEW|GOOD_CONDITION|ACCEPTABLE_CONDITION)'))  # Serve? Non serve? Bho non lo so!
+        validate('value', self.value, is_in={'AS_NEW', 'GOOD_CONDITION', 'ACCEPTABLE_CONDITION'})
 
     def __str__(self):
         return self.value
@@ -58,8 +57,8 @@ class Brand:
     value: str
 
     def __post_init__(self):
-        validate_dataclass(self) #quindi lasciamo max_lenght=100?
-        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'^[A-Za-z0-9\_\-\(\)\.\,\;\&\:\=\è\'\"\! ]*'))
+        validate_dataclass(self)
+        validate('value', self.value, min_len=1, max_len=20, custom=pattern(r'^[A-Za-z\_\-\(\)]+'))
 
     def __str__(self):
         return self.value
@@ -111,12 +110,12 @@ class Price:
 
 @typechecked
 @dataclass(frozen=True, order=True)
-class Category:  # Abbassiamo la lunghezza! Anche qui c'è conflitto mi a con le lunghezze del model!
+class Category:
     value: str
 
     def __post_init__(self):
-        validate_dataclass(self)  # quindi lasciamo max_lenght=100?
-        validate('value', self.value, min_len=1, max_len=100, custom=pattern(r'^[A-Za-z0-9\_\-\(\)\.\,\;\&\:\=\è\'\"\! ]*'))
+        validate_dataclass(self)
+        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'^[A-Za-z0-9\_\-\(\)\.\,\;\&\:\=\è\'\"\! ]*'))
 
     def __str__(self):
         return self.value
@@ -143,7 +142,7 @@ class Username:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=8, max_len=25, custom=pattern(r'[A-Za-z0-9]+'))
+        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'[A-Za-z0-9]+'))
 
     def __str__(self):
         return str(self.value)
@@ -156,7 +155,7 @@ class Password:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=6, max_len=25, custom=pattern(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{6,}$')) #e che vuol dì? O.O
+        validate('value', self.value, min_len=6, max_len=25, custom=pattern(r'[A-Za-z0-9]+'))  # r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{6,25}$'
 
     def __str__(self):
         return str(self.value)
@@ -172,7 +171,6 @@ class Item:
     brand: Brand
     price: Price
     category: Category
-
 
 @typechecked
 @dataclass(frozen=True)

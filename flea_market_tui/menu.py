@@ -11,11 +11,11 @@ from validation.regex import pattern
 
 @typechecked
 @dataclass(order=True, frozen=True)
-class Description:
+class MenuDescription:
     value: str
 
     def __post_init__(self):
-        validate_dataclass(self)
+        #validate_dataclass(self)
         validate('Description.value', self.value, min_len=1, max_len=1000, custom=pattern(r'[0-9A-Za-z ;.,_-]*'))
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Key:
     value: str
 
     def __post_init__(self):
-        validate_dataclass(self)
+        #validate_dataclass(self)
         validate('Key.value', self.value, min_len=1, max_len=10, custom=pattern(r'[0-9A-Za-z_-]*'))
 
     def __str__(self):
@@ -37,7 +37,7 @@ class Key:
 @dataclass(frozen=True)
 class Entry:
     key: Key
-    description: Description
+    description: MenuDescription
     on_selected: Callable[[], None] = field(default=lambda: None)
     is_exit: bool = field(default=False)
     is_logged: Callable[[], bool] = field(default=lambda: False)  # parte presente solo sul prog di erica
@@ -45,13 +45,13 @@ class Entry:
     @staticmethod
     def create(key: str, description: str, on_selected: Callable[[], None] = lambda: None,
                is_exit: bool = False, is_logged: Callable[[], bool] = lambda: False) -> 'Entry':
-        return Entry(Key(key), Description(description), on_selected, is_exit, is_logged)  # Anche qui abbiamo aggiunto is_logged
+        return Entry(Key(key), MenuDescription(description), on_selected, is_exit, is_logged)  # Anche qui abbiamo aggiunto is_logged
 
 
 @typechecked
 @dataclass(frozen=True)
 class Menu:
-    description: Description
+    description: MenuDescription
     auto_select: Callable[[], None] = field(default=lambda: None)
     __entries: List[Entry] = field(default_factory=list, repr=False, init=False)
     __key2entry: Dict[Key, Entry] = field(default_factory=dict, repr=False, init=False)
@@ -59,7 +59,7 @@ class Menu:
 
     def __post_init__(self, create_key: Any):
         validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
-        validate_dataclass(self)
+        #validate_dataclass(self)
 
     def _add_entry(self, value: Entry, create_key: Any) -> None:
         validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
@@ -102,26 +102,26 @@ class Menu:
                 return is_exit, is_logged  # is_logged qui
 
 
-@typechecked
-@dataclass()
-class Builder:
-    __menu: Optional['Menu']
-    __create_key = object()
+    @typechecked
+    @dataclass()
+    class Builder:
+        __menu: Optional['Menu']
+        __create_key = object()
 
-    def __init__(self, description: Description, auto_select: Callable[[], None] = lambda: None):
-        self.__menu = Menu(description, auto_select, self.__create_key)
+        def __init__(self, description: MenuDescription, auto_select: Callable[[], None] = lambda: None):
+            self.__menu = Menu(description, auto_select, self.__create_key)
 
-    @staticmethod
-    def is_valid_key(key: Any) -> bool:
-        return key == Menu.Builder.__create_key
+        @staticmethod
+        def is_valid_key(key: Any) -> bool:
+            return key == Menu.Builder.__create_key
 
-    def with_entry(self, value: Entry) -> 'Menu.Builder':
-        validate('menu', self.__menu)
-        self.__menu._add_entry(value, self.__create_key)
-        return self
+        def with_entry(self, value: Entry) -> 'Menu.Builder':
+            validate('menu', self.__menu)
+            self.__menu._add_entry(value, self.__create_key)
+            return self
 
-    def build(self) -> 'Menu':
-        validate('menu', self.__menu)
-        validate('menu.entries', self.__menu._has_exit(), equals=True)
-        res, self.__menu = self.__menu, None
-        return res
+        def build(self) -> 'Menu':
+            validate('menu', self.__menu)
+            validate('menu.entries', self.__menu._has_exit(), equals=True)
+            res, self.__menu = self.__menu, None
+            return res
