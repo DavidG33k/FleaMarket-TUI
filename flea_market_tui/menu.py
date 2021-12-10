@@ -15,7 +15,7 @@ class MenuDescription:
     value: str
 
     def __post_init__(self):
-        #validate_dataclass(self)
+        validate_dataclass(self)
         validate('Description.value', self.value, min_len=1, max_len=1000, custom=pattern(r'[0-9A-Za-z ;.,_-]*'))
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Key:
     value: str
 
     def __post_init__(self):
-        #validate_dataclass(self)
+        validate_dataclass(self)
         validate('Key.value', self.value, min_len=1, max_len=10, custom=pattern(r'[0-9A-Za-z_-]*'))
 
     def __str__(self):
@@ -89,17 +89,17 @@ class Menu:
                 key = Key(line.strip())
                 entry = self.__key2entry[key]
                 entry.on_selected()
-                return entry.is_exit, entry.is_logged()  # is_logged qui
+                return entry.is_exit, entry.is_logged()
             except (KeyError, TypeError, ValueError):
                 print('Invalid selection. Please, try again...')
 
     # Menù loop
-    def run(self) -> tuple[bool, bool]:  # Nel metodo della slide, quindi senza login, ritorno None e alla fine abbiamo solo if is_exit: return. In questo caso dobbiamo capire anche se siamo ancora loggati quindi ci ritorniamo una tupa di bool e la controlliamo fuori!
+    def run(self) -> tuple[bool, bool]:
         while True:
             self.__print()
             is_exit, is_logged = self.__select_from_input()
             if is_exit or is_logged:
-                return is_exit, is_logged  # is_logged qui
+                return is_exit, is_logged
 
 
     @typechecked

@@ -6,7 +6,6 @@ from typing import Any, Union, List
 from typeguard import typechecked
 
 from valid8 import validate
-from valid8 import ValidationError
 
 from validation.dataclasses import validate_dataclass
 from validation.regex import pattern
@@ -115,7 +114,7 @@ class Category:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'^[A-Za-z0-9\_\-\(\)\.\,\;\&\:\=\è\'\"\! ]*'))
+        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'^[A-Za-z\_\-\(\) ]+'))
 
     def __str__(self):
         return self.value
@@ -175,7 +174,7 @@ class Item:
 @typechecked
 @dataclass(frozen=True)
 class FleaMarket:
-    __items: List[Item] = field(default_factory=list, init=False)
+    __items: List[Union[Item]] = field(default_factory=list, init=False)
 
     def items(self) -> int:
         return len(self.__items)

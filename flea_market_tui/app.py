@@ -12,8 +12,6 @@ from flea_market_tui.menu import Menu, MenuDescription, Entry
 api_address = 'http://localhost:8000/api/v1/'
 
 class App:
-    __filename = Path(__file__).parent.parent / 'items_dataset.csv'
-    __delimiter = '\t'
     __logged = False
     __key = None
     __id_dictionary = []
@@ -37,7 +35,7 @@ class App:
             .with_entry(Entry.create('3', 'Sort by Price', on_selected=lambda: self.__sort_by_price())) \
             .with_entry(Entry.create('4', 'Sort by Condition', on_selected=lambda: self.__sort_by_condition())) \
             .with_entry(Entry.create('5', 'Sort by Brand', on_selected=lambda: self.__sort_by_brand())) \
-            .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Exit succesfully!'), is_exit=True)) \
+            .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Exited!'), is_exit=True)) \
             .build()
 
     def __login(self) -> bool:
@@ -72,8 +70,10 @@ class App:
 
         print_separator()
 
-        for index in range(self.__shoppinglist.items()):
-            item = self.__shoppinglist.item(index)
+        print(self.__fleamarket.items())
+
+        for index in range(self.__fleamarket.items()):
+            item = self.__fleamarket.item(index)
             print(fmt % (index + 1, item.name, item.description, item.condition, item.brand, item.price, item.category))
 
         print_separator()
@@ -81,8 +81,8 @@ class App:
     def __add_item(self) -> None:
         item = Item(*self.__read_item())
         try:
-            self.__fleamarket.add_smartphone(Item)
-            self.__save(Item)
+            self.__fleamarket.add_item(item)
+            self.__save(item)
             print('Item added!')
         except ValueError:
             print('Item already exist in the list!')
@@ -125,18 +125,19 @@ class App:
     def run(self) -> None:
         try:
             self.__run()
-        except  :
+        except Exception as e:
+            print(e)
             print('Panic error!', file=sys.stderr)
 
     def __fetch(self) -> None:
         res = requests.get(url=f'{api_address}item/', headers={'Authorization': f'Token {self.__key}'})
-        print(res.json());
+
         if res.status_code != 200:
             raise RuntimeError()
 
         items = res.json()
         for item in items:
-            validate('row length', item, length=6)
+            validate('row length', item, length=7)
 
             item_id = int(item['id'])
             name = Name(str(item['name']))
@@ -144,11 +145,13 @@ class App:
             condition = Condition(str(item['condition']))
             brand = Brand(str(item['brand']))
             price = Price.create(int(int(item['price']) / 100), int(item['price']) % 100)
-            category = str(item['category'])
+            category = Category(str(item['category']))
 
             self.__id_dictionary.append([item_id, name.value, brand.value])
 
             self.__fleamarket.add_item(Item(name, description, condition, brand, price, category))
+
+            print(item)
 
     def __save(self, item: Any) -> None:
         req = requests.post(url=f'{api_address}item/add/',
