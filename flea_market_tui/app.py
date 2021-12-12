@@ -80,7 +80,12 @@ class App:
 
         for index in range(self.__fleamarket.items()):
             item = self.__fleamarket.item(index)
-            print(fmt % (index + 1, item.name, item.description, item.condition, item.brand, item.price, item.category))
+            if str(item.condition) == '0':
+                print(fmt % (index + 1, item.name, item.description, 'AS NEW', item.brand, item.price, item.category))
+            elif str(item.condition) == '1':
+                print(fmt % (index + 1, item.name, item.description, 'GOOD CONDITION', item.brand, item.price, item.category))
+            elif str(item.condition) == '2':
+                print(fmt % (index + 1, item.name, item.description, 'ACCEPTABLE CONDITION', item.brand, item.price, item.category))
 
         print_separator()
 
@@ -136,6 +141,8 @@ class App:
             print('Panic error!', file=sys.stderr)
 
     def __fetch(self) -> None:
+        self.__fleamarket.clear()
+        self.__id_dictionary.clear()
         res = requests.get(url=f'{api_address}item/', headers={'Authorization': f'Token {self.__key}'})
 
         if res.status_code != 200:
@@ -179,7 +186,7 @@ class App:
     def __delete(self, item: Any) -> None:
         index = None
         for i in range(len(self.__id_dictionary)):
-            if (item.name.value, item.manufacturer.value) == (self.__id_dictionary[i][1], self.__id_dictionary[i][2]):
+            if (item.name.value, item.brand.value) == (self.__id_dictionary[i][1], self.__id_dictionary[i][2]):
                 requests.delete(url=f'{api_address}item/edit/{self.__id_dictionary[i][0]}',
                                 headers={'Authorization': f'Token {self.__key}'})
                 index = i
@@ -187,14 +194,14 @@ class App:
         self.__id_dictionary.pop(index)
 
     def __read_item(self) -> Tuple[Name, Description, Condition, Brand, Price, Category]:
-        item = self.__read('Name', Name)
+        name = self.__read('Name', Name)
         description = self.__read('Description', Description)
-        condition = self.__read('Condition', Condition)
+        condition = self.__read('Condition (0 if as new, 1 if in good condition, 2 if in acceptable condition)', Condition)
         brand = self.__read('Brand', Brand)
         price = self.__read('Price', Price.parse)
         category = self.__read('Category', Category)
 
-        return item, description, condition, brand, price, category
+        return name, description, condition, brand, price, category
 
     # COSA FA? O.O
     @staticmethod

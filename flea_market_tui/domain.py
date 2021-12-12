@@ -44,7 +44,7 @@ class Condition:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, is_in={'AS_NEW', 'GOOD_CONDITION', 'ACCEPTABLE_CONDITION'})
+        validate('value', self.value, is_in={'0', '1', '2'})
 
     def __str__(self):
         return self.value
@@ -199,3 +199,6 @@ class FleaMarket:
 
     def sort_by_brand(self) -> None:
         self.__items.sort(key=lambda x: x.brand)
+
+    def clear(self) -> None:
+        self.__items.clear()

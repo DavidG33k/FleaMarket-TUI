@@ -1,6 +1,5 @@
-from collections import Callable
 from dataclasses import dataclass, field, InitVar
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 
 from typeguard import typechecked
 from valid8 import validate
@@ -42,8 +41,8 @@ class Entry:
     is_exit: bool = field(default=False)
     is_logged: Callable[[], bool] = field(default=lambda: False)
 
-    #def __post_init__(self):
-    #    validate_dataclass(self)
+    def __post_init__(self):
+        validate_dataclass(self)
 
     @staticmethod
     def create(key: str, description: str, on_selected: Callable[[], None] = lambda: None,
@@ -61,7 +60,7 @@ class Menu:
     create_key: InitVar[Any] = field(default=None)
 
     def __post_init__(self, create_key: Any):
-        #validate_dataclass(self)
+        validate_dataclass(self)
         validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
 
     def _add_entry(self, value: Entry, create_key: Any) -> None:
