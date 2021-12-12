@@ -141,7 +141,7 @@ class Username:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'[A-Za-z0-9]+'))
+        validate('value', self.value, min_len=1, max_len=30, custom=pattern(r'[A-Za-z0-9\-\_\@\!\?\.]+'))
 
     def __str__(self):
         return str(self.value)
@@ -154,7 +154,7 @@ class Password:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=6, max_len=25, custom=pattern(r'[A-Za-z0-9]+'))  # r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{6,25}$'
+        validate('value', self.value, min_len=8, max_len=25, custom=pattern(r'[A-Za-z0-9\-\_\@\!\?\.]+'))  # r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{6,25}$'
 
     def __str__(self):
         return str(self.value)
@@ -174,7 +174,7 @@ class Item:
 @typechecked
 @dataclass(frozen=True)
 class FleaMarket:
-    __items: List[Union[Item]] = field(default_factory=list, init=False)
+    __items: List[Item] = field(default_factory=list, init=False)
 
     def items(self) -> int:
         return len(self.__items)
@@ -184,6 +184,7 @@ class FleaMarket:
         return self.__items[index]
 
     def add_item(self, item: Item) -> None:
+        validate('items', self.items(), max_value=9) # PERCHE'?
         self.__items.append(item)
 
     def remove_item(self, index: int) -> None:

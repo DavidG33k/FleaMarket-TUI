@@ -16,7 +16,7 @@ class MenuDescription:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('Description.value', self.value, min_len=1, max_len=1000, custom=pattern(r'[0-9A-Za-z ;.,_-]*'))
+        validate('MenuDescription.value', self.value, min_len=1, max_len=1000, custom=pattern(r'[0-9A-Za-z ;.,_-]*'))
 
     def __str__(self):
         return self.value
@@ -40,12 +40,15 @@ class Entry:
     description: MenuDescription
     on_selected: Callable[[], None] = field(default=lambda: None)
     is_exit: bool = field(default=False)
-    is_logged: Callable[[], bool] = field(default=lambda: False)  # parte presente solo sul prog di erica
+    is_logged: Callable[[], bool] = field(default=lambda: False)
+
+    #def __post_init__(self):
+    #    validate_dataclass(self)
 
     @staticmethod
     def create(key: str, description: str, on_selected: Callable[[], None] = lambda: None,
                is_exit: bool = False, is_logged: Callable[[], bool] = lambda: False) -> 'Entry':
-        return Entry(Key(key), MenuDescription(description), on_selected, is_exit, is_logged)  # Anche qui abbiamo aggiunto is_logged
+        return Entry(Key(key), MenuDescription(description), on_selected, is_exit, is_logged)
 
 
 @typechecked
@@ -58,8 +61,8 @@ class Menu:
     create_key: InitVar[Any] = field(default=None)
 
     def __post_init__(self, create_key: Any):
-        validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
         #validate_dataclass(self)
+        validate('create_key', create_key, custom=Menu.Builder.is_valid_key)
 
     def _add_entry(self, value: Entry, create_key: Any) -> None:
         validate('create_key', create_key, custom=Menu.Builder.is_valid_key)

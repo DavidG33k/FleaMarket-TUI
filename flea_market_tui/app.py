@@ -55,10 +55,18 @@ class App:
         email = self.__read("Email", Email)
         password = self.__read("Password", Password)
 
-        res = requests.post(url=f'{api_address}auth/registration/', data={'username': username, 'email': email, 'password1': password, 'password2': password})
+        res = requests.post(url=f'{api_address}auth/registration',
+                            data={'username': username, 'email': email,
+                                  'password1': password, 'password2': password})
 
         if res.status_code == 400:
-            print('User already exists :( Please retry!')
+            if res.json().get('username') is not None:
+                print('Username not valid: ' + str(res.json().get('username')))
+            if res.json().get('email') is not None:
+                print('Email not valid: ' + str(res.json().get('email')))
+            if res.json().get('password1') is not None:
+                print('Password not valid: ' + str(res.json().get('password1')))
+
 
     def __print_items(self) -> None:
         print_separator = lambda: print('-' * 200)
@@ -69,8 +77,6 @@ class App:
         print(fmt % ('#', 'NAME', 'DESCRIPTION', 'CONDITION', 'BRAND', 'PRICE', 'CATEGORY'))
 
         print_separator()
-
-        print(self.__fleamarket.items())
 
         for index in range(self.__fleamarket.items()):
             item = self.__fleamarket.item(index)
@@ -150,8 +156,6 @@ class App:
             self.__id_dictionary.append([item_id, name.value, brand.value])
 
             self.__fleamarket.add_item(Item(name, description, condition, brand, price, category))
-
-            print(item)
 
     def __save(self, item: Any) -> None:
         req = requests.post(url=f'{api_address}item/add/',
