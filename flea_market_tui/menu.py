@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, InitVar
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Tuple
 
 from typeguard import typechecked
 from valid8 import validate
@@ -84,7 +84,7 @@ class Menu:
             print(f'{entry.key}:\t{entry.description}')
 
     # Waiting for user choose
-    def __select_from_input(self) -> tuple[bool, bool]:
+    def __select_from_input(self) -> Tuple[bool, bool]:
         while True:
             try:
                 line = input("? ")
@@ -96,7 +96,7 @@ class Menu:
                 print('Invalid selection. Please, try again...')
 
     # Menù loop
-    def run(self) -> tuple[bool, bool]:
+    def run(self) -> Tuple[bool, bool]:
         while True:
             self.__print()
             is_exit, is_logged = self.__select_from_input()
