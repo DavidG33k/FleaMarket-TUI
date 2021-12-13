@@ -20,6 +20,10 @@ def test_menu_description_must_be_validate_string():
         MenuDescription(0)
     with pytest.raises(TypeError):
         MenuDescription(None)
+
+
+def test_description_must_be_non_empty_string():
+    MenuDescription('correct')
     with pytest.raises(ValidationError):
         MenuDescription('')
 
@@ -30,8 +34,8 @@ def test_description_str():
     assert value == desc.__str__()
 
 
-def test_menu_description_not_permitted_values():
-    for special_char in ['<', '>', '#', '\n', '\r']:
+def test_description_must_not_contain_special_chars():
+    for special_char in ['\n', '\r', '*', '^', '$']:
         with pytest.raises(ValidationError):
             MenuDescription(special_char)
 
@@ -45,12 +49,10 @@ def test_key_of_length_mor_than_10_chars():
 def test_key_must_be_validate_value():
     with pytest.raises(ValidationError):
         Key('')
-    with pytest.raises(TypeError):
-        MenuDescription(None)
 
 
-def test_key_not_permitted_values():
-    for special_char in ['<', '>', '#', '\n', '\r']:
+def test_key_cannot_contain_special_chars():
+    for special_char in ['\n', '\r', '*', '^', '$']:
         with pytest.raises(ValidationError):
             Key(special_char)
 
