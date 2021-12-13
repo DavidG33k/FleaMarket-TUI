@@ -1,6 +1,5 @@
 import sys
-from pathlib import Path
-from typing import Any, Tuple, Callable
+from typing import Any, Callable
 
 import requests as requests
 from valid8 import validate, ValidationError
@@ -39,8 +38,8 @@ class App:
             .build()
 
     def __login(self) -> bool:
-        username = self.__read("Username", Username)
-        password = self.__read("Password", Password)
+        username = self.__read_input("Username", Username)
+        password = self.__read_input("Password", Password)
 
         res = requests.post(url=f'{api_address}auth/login/', data={'username': username, 'password': password})
 
@@ -51,9 +50,9 @@ class App:
         return True
 
     def __register(self) -> None:
-        username = self.__read("Username", Username)
-        email = self.__read("Email", Email)
-        password = self.__read("Password", Password)
+        username = self.__read_input("Username", Username)
+        email = self.__read_input("Email", Email)
+        password = self.__read_input("Password", Password)
 
         res = requests.post(url=f'{api_address}auth/registration',
                             data={'username': username, 'email': email,
@@ -66,7 +65,10 @@ class App:
                 print('Email not valid: ' + str(res.json().get('email')))
             if res.json().get('password1') is not None:
                 print('Password not valid: ' + str(res.json().get('password1')))
-
+            if res.json().get('non_field_errors') is not None:
+                print('Fields not valid: ' + str(res.json().get('non_field_errors')))
+        else:
+            print('Registration completed!')
 
     def __print_items(self) -> None:
         print_separator = lambda: print('-' * 200)
@@ -90,20 +92,17 @@ class App:
         print_separator()
 
     def __add_item(self) -> None:
-        item = Item(*self.__read_item())
-        try:
-            self.__fleamarket.add_item(item)
-            self.__save(item)
-            print('Item added!')
-        except ValueError:
-            print('Item already exist in the list!')
+        item = self.__read_item()
+        self.__fleamarket.add_item(item)
+        self.__save(item)
+        print('Item added!')
 
     def __remove_item(self) -> None:
         def builder(value: str) -> int:
             validate('value', int(value), min_value=0, max_value=self.__fleamarket.items())
             return int(value)
 
-        index = self.__read('Index (0 to cancel)', builder)
+        index = self.__read_input('Index (0 to cancel)', builder)
         if index == 0:
             print('Cancelled!')
             return
@@ -193,26 +192,21 @@ class App:
                 break
         self.__id_dictionary.pop(index)
 
-    def __read_item(self) -> Tuple[Name, Description, Condition, Brand, Price, Category]:
-        name = self.__read('Name', Name)
-        description = self.__read('Description', Description)
-        condition = self.__read('Condition (0 if as new, 1 if in good condition, 2 if in acceptable condition)', Condition)
-        brand = self.__read('Brand', Brand)
-        price = self.__read('Price', Price.parse)
-        category = self.__read('Category', Category)
+    def __read_item(self) -> Item:
+        name = self.__read_input('Name', Name)
+        description = self.__read_input('Description', Description)
+        condition = self.__read_input('Condition (0 if as new, 1 if in good condition, 2 if in acceptable condition)', Condition)
+        brand = self.__read_input('Brand', Brand)
+        price = self.__read_input('Price', Price.parse)
+        category = self.__read_input('Category', Category)
 
-        return name, description, condition, brand, price, category
+        return Item(name, description, condition, brand, price, category)
 
-    # COSA FA? O.O
     @staticmethod
-    def __read(prompt: str, builder: Callable) -> Any:
+    def __read_input(str_to_print: str, builder: Callable) -> Any:  # Implemented to erase exceptions in real time.
         while True:
             try:
-                if prompt != 'Password':
-                    line = input(f'{prompt}: ')
-                else:
-                    line = input(f'{prompt}: ')
-                    # line = getpass(f'{prompt}: ')
+                line = input(f'{str_to_print}: ')
 
                 res = builder(line.strip())
                 return res

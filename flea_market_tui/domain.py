@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass, InitVar, field
 
-from typing import Any, Union, List
+from typing import Any, List
 
 from typeguard import typechecked
 
@@ -154,7 +154,7 @@ class Password:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=8, max_len=25, custom=pattern(r'[A-Za-z0-9\-\_\@\!\?\.]+'))  # r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{6,25}$'
+        validate('value', self.value, min_len=8, max_len=25, custom=pattern(r'[A-Za-z0-9\-\_\@\!\?\.]+'))  # r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{8,25}$'
 
     def __str__(self):
         return str(self.value)
@@ -184,7 +184,6 @@ class FleaMarket:
         return self.__items[index]
 
     def add_item(self, item: Item) -> None:
-        validate('items', self.items(), max_value=9) # PERCHE'?
         self.__items.append(item)
 
     def remove_item(self, index: int) -> None:
