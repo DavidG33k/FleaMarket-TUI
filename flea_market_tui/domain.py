@@ -23,7 +23,6 @@ class Name:
     def __str__(self):
         return self.value
 
-
 @typechecked
 @dataclass(frozen=True, order=True)
 class Description:
