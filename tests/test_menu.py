@@ -7,7 +7,6 @@ from flea_market_tui.menu import MenuDescription, Key, Entry, Menu
 
 
 # descrizione
-
 def test_menu_description_of_length_more_than_1000_chars():
     MenuDescription('D' * 1000)
     with pytest.raises(ValidationError):
