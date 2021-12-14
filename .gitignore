@@ -14,3 +14,4 @@ flea_market_tui/menu.py
 .idea/misc.xml
 .idea/FleaMarketTUI.iml
 venv
+flea_market_tui/__pycache__/domain.cpython-39.pyc
