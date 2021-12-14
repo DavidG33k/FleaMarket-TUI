@@ -141,6 +141,7 @@ def test_price_euro():
 def test_price_cents():
     assert Price.create(11, 22).cents == 22
 
+
 @pytest.fixture
 def items():
     #Name,Description,Condition,Brand, Price Category
@@ -153,6 +154,7 @@ def items():
 
     ]
 
+
 def test_Fleamarket_add_items(items):
     market = FleaMarket()
     index = 0
@@ -161,6 +163,7 @@ def test_Fleamarket_add_items(items):
         index += 1
         assert market.items() == index
         assert market.item(index - 1) == i
+
 
 def test_Fleamarket_remove_item(items):
     market = FleaMarket()
@@ -181,6 +184,7 @@ def test_Fleamarket_remove_item(items):
         market.remove_item(0)
     assert market.items() == 0
 
+
 def test_Fleamarket_sort_by_price(items):
     market = FleaMarket()
     market.add_item(items[0])
@@ -188,12 +192,14 @@ def test_Fleamarket_sort_by_price(items):
     market.sort_by_price()
     assert market.item(0) == items[0]
 
+
 def test_Fleamarket_sort_by_condition(items):
     market = FleaMarket()
     market.add_item(items[0])
     market.add_item(items[1])
     market.sort_by_condition()
     assert market.item(0) == items[1]
+
 
 def test_Fleamarket_sort_by_brand(items):
     market = FleaMarket()

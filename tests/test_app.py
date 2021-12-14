@@ -28,25 +28,119 @@ def test_app_sign_in_exit(mocked_print, mocked_input):
     with patch('builtins.open', mock_open()):
         main('__main__')
     mocked_input.assert_called()
+    mocked_print.assert_any_call('*** SIGN-IN ***')
+    mocked_print.assert_any_call('0:\tExit')
     mocked_print.assert_any_call('Exited!')
 
 
 @patch('requests.post', side_effect=[mock_response_dict(400)])
 @patch('builtins.input', side_effect=['1', 'udonto', 'sbagliato'])
 @patch('builtins.print')
-def test_app_sign_in_a_non_user(mocked_print, mocked_input, mocked_requests_post):
+def test_app_sign_in_with_wrong_parameters(mocked_print, mocked_input, mocked_requests_post):
     with patch('builtins.open', mock_open()):
         main('__main__')
     mocked_requests_post.assert_called()
     mocked_input.assert_called()
+    mocked_print.assert_any_call('*** SIGN-IN ***')
+    mocked_print.assert_any_call('1:\tLogin')
     mocked_print.assert_any_call('User does not exist :( Please retry!')
 
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'Key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898'])
+@patch('builtins.print')
+def test_app_sign_in_with_correct_parameters(mocked_print, mocked_input, mocked_requests_post):
+    with patch('builtins.open', mock_open()):
+        main('__main__')
+    mocked_requests_post.assert_called()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('*** SIGN-IN ***')
+    mocked_print.assert_any_call('1:\tLogin')
+    mocked_print.assert_any_call('login successfully')
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200)])
+@patch('builtins.input', side_effect=['2', 'nuovo_username', 'nuova@gmail.com', 'password'])
+@patch('builtins.print')
+def test_app_registration_user(mocked_print, mocked_input, mocked_requests_post):
+    with patch('builtins.open', mock_open()):
+        main('__main__')
+    mocked_requests_post.assert_called()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('*** SIGN-IN ***')
+    mocked_print.assert_any_call('2:\tRegister')
+    mocked_print.assert_any_call('Registration completed!')
+
+
+@patch('requests.post', side_effect=[mock_response_dict(400)])
+@patch('builtins.input', side_effect=['2', 'pallas', 'pallas@gmail.com', 'antony98'])
+@patch('builtins.print')
+def test_app_registration_user_already_exist(mocked_print, mocked_input, mocked_requests_post):
+    with patch('builtins.open', mock_open()):
+        main('__main__')
+    mocked_requests_post.assert_called()
+    mocked_print.assert_any_call('Not Valid new Users!')
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('requests.get', side_effect=[mock_response_dict(200)])
+@patch('builtins.input', side_effect=['1', 'cazzo', 'antony98', '0', '0'])
+@patch('builtins.print')
+def test_app_sign_in_resists_wrong_username(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_print.assert_any_call('*** SIGN-IN ***')
+    mocked_requests_post.assert_called()
+    mocked_requests_get.assert_called()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call('*** FLEA-MARKET ***')
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('requests.get', side_effect=[mock_response_dict(200)])
+@patch('builtins.input', side_effect=['1', 'pallas', 'commonPass', 'aaaaaaaa', '0', '0'])
+@patch('builtins.print')
+def test_app_sign_in_resists_wrong_password(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
+    with patch('builtins.open', mock_open()):
+        App().run()
+    mocked_print.assert_any_call('*** SIGN-IN ***')
+    mocked_requests_post.assert_called()
+    mocked_requests_get.assert_called()
+    mocked_print.assert_any_call('*** FLEA-MARKET ***')
+
+
+'''
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'}),
+                                     mock_response_dict(200, {'id': 19,
+                                                              'name': 'ciao',
+                                                              'description': 'Smartphone',
+                                                              'condition': '0',
+                                                              'brand': 'nike',
+                                                              'price': '20',
+                                                              'category': 'abbigliamento'})])
+@patch('requests.get', side_effect=[mock_response(200, [])])
+@patch('builtins.input',
+       side_effect=['1', 'pallas', 'antony98', '19', 'ciao', 'Smartphone', '0', 'nike', '20', 'abbigliamento'])
+@patch('builtins.print')
+def test_app_add_item(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
+    with patch('builtins.open', mock_open()) as mocked_open:
+        main('__main__')
+    assert list(filter(lambda x: 'Item added!' in str(x), mocked_print.mock_calls))
+
+    mocked_requests_post.assert_called_with(url='http://localhost:8000/api/v1/item/add/', headers={
+        'Authorization': 'Token e2cd07584740609b17b0b0f2ce6787452aa801e0'}, data={
+        'name': 'ciao',
+        'description': 'Smartphone',
+        'condition': '0',
+        'brand': 'nike',
+        'price': '20',
+        'category': 'abbigliamento'})
+'''
 
 
 
 '''
-
-@patch('requests.post', side_effect=[mock_response_dict(200, {'key': '3be7163c1baea2a220777a82ec7e59a4ef545f26'})])
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
 @patch('requests.get', side_effect=[mock_response_dict(200)])
 @patch('builtins.input', side_effect=['1', 'ciccioRiccio99', 'ciccioRiccio9!', '0', '0'])
 @patch('builtins.print')

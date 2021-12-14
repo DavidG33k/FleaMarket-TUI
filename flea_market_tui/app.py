@@ -46,6 +46,7 @@ class App:
         if res.status_code != 200:
             print('User does not exist :( Please retry!')
             return False
+        print("login successfully")
         self.__key = res.json()['key']
         return True
 
@@ -59,14 +60,7 @@ class App:
                                   'password1': password, 'password2': password})
 
         if res.status_code == 400:
-            if res.json().get('username') is not None:
-                print('Username not valid: ' + str(res.json().get('username')))
-            if res.json().get('email') is not None:
-                print('Email not valid: ' + str(res.json().get('email')))
-            if res.json().get('password1') is not None:
-                print('Password not valid: ' + str(res.json().get('password1')))
-            if res.json().get('non_field_errors') is not None:
-                print('Fields not valid: ' + str(res.json().get('non_field_errors')))
+            print('Not Valid new Users!')
         else:
             print('Registration completed!')
 
