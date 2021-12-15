@@ -39,7 +39,7 @@ class Gui:
         window = sg.Window("FleaMarket", layout)
 
         while True:
-            event,values = window.read()
+            event, values = window.read()
 
             if event == 'Login':
                 window.close()
@@ -190,7 +190,9 @@ class Gui:
             if event == 'Add':
                 window['-edit-'].Update(disabled=True)
                 window['-remove-'].Update(disabled=True)
-                self.add_item_form()
+                new_item = self.item_form()
+                self.__fleamarket.add_item(new_item)
+                self.__store(new_item)
                 data = self.make_table()
                 window['-TABLE-'].Update(values=data[1:][:])
                 sg.Popup('Item added successfully!')
@@ -201,10 +203,10 @@ class Gui:
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
                 if (selected_row != ''):
-                    self.__edit_item()
+                    self.__edit_item(int(selected_row))
                     data = self.make_table()
                     window['-TABLE-'].Update(values=data[1:][:])
-                    sg.Popup('Item removed!')
+                    sg.Popup('Item edited!')
             if event == '-remove-':
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
@@ -227,22 +229,11 @@ class Gui:
 
         window.close()
 
-    def __edit_item(self) -> None:
-        def builder(value: str) -> int:
-            validate('value', int(value), min_value=0, max_value=self.__fleamarket.items())
-            return int(value)
-
-        index = self.__read_input('Index (0 to cancel)', builder)
-        if index == 0:
-            print('Cancelled!')
-            return
-
-        id_to_edit = self.__find_id(self.__fleamarket.item(index - 1))
-        print(id_to_edit)
-        item = self.__read_item()
-        self.__fleamarket.update_item(index - 1, item)
-        print('ci sono')
-        self.__update(self.__fleamarket.item(index - 1), id_to_edit)
+    def __edit_item(self, index: int) -> None:
+        id_to_edit = self.__find_id(self.__fleamarket.item(index))
+        item = self.item_form()
+        self.__fleamarket.update_item(index, item)
+        self.__update(self.__fleamarket.item(index), id_to_edit)
 
     def __update(self, item: Any, id: int) -> None:
             requests.patch(url=f'{api_address}item/edit/' + str(id)+ '/',
@@ -251,7 +242,7 @@ class Gui:
                               'condition': item.condition.value, 'brand': item.brand.value,
                               'price': item.price.value_in_cents, 'category': item.category})
 
-            print('Updated successfully!')
+            sg.Popup('Updated successfully!')
 
     def __find_id(self, item: Item) -> int:
         for i in range(len(self.__id_dictionary)):
@@ -265,7 +256,7 @@ class Gui:
             data[i+1] = [item.name, item.description, item.condition, item.brand, item.price, item.category.value]
         return data
 
-    def add_item_form(self) -> None:
+    def item_form(self) -> Item:
         layout = [[sg.Text("Add item", size=(15, 1), font=40, justification='r')],
                   [sg.Text("Name"), sg.InputText(key='-name-')],
                   [sg.Text("Description"), sg.InputText(key='-description-')],
@@ -310,11 +301,8 @@ class Gui:
 
                         sg.Popup(err)
                     else:
-                        new_item = Item(name, description, condition, brand, price, category)
-                        self.__fleamarket.add_item(new_item)
-                        self.__store(new_item)
                         window.close()
-                        break
+                        return Item(name, description, condition, brand, price, category)
 
         window.close()
 
