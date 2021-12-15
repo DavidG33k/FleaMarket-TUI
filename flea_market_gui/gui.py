@@ -17,6 +17,7 @@ class Gui:
     __key = None
     __fleamarket = FleaMarket()
     __id_dictionary = []
+    __users_list = []
 
     def progress_bar(self) -> None:
         layout = [[sg.Text('Creating your account...')],
@@ -321,7 +322,7 @@ class Gui:
                         window['-TABLE-'].Update(values=data[1:][:])
                         sg.Popup('Item removed!')
             if event == 'Users list':
-                print('visualizza lista da implementare')
+                self.__show_user_list()
             if event == '-sortby-':
                 if values['-sortby-'] == 'price':
                     self.__sort_by_price()
@@ -331,6 +332,39 @@ class Gui:
                     self.__sort_by_brand()
                 data = self.make_table()
                 window['-TABLE-'].Update(values=data[1:][:])
+
+        window.close()
+
+    def __show_user_list(self) -> None:
+
+        try:
+            self.__fetch_users_list()
+        except ValueError as e:
+            sg.Popup('Error to retrive users!')
+        except RuntimeError:
+            sg.Popup('Connection failed!')
+
+        data = self.make_users_table()
+        headings = ['   ID    ', '    USERNAME     ']
+
+        layout = [[sg.Table(values=data[1:][:], headings=headings,
+                            alternating_row_color='PaleVioletRed4',
+                            max_col_width=100,
+                            auto_size_columns=True,
+                            display_row_numbers=True,
+                            justification='center',
+                            num_rows=10,
+                            key='-TABLE-',
+                            enable_events=True,
+                            row_height=45)],
+                  [sg.Button('Close')]]
+
+        window = sg.Window("FleaMarket", layout)
+
+        while True:
+            event, values = window.read()
+            if event == sg.WIN_CLOSED or event == 'Close':
+                break
 
         window.close()
 
@@ -357,6 +391,14 @@ class Gui:
         for i in range(self.__fleamarket.items()):
             item = self.__fleamarket.item(i)
             data[i+1] = [item.name, item.description, item.condition, item.brand, item.price, item.category.value]
+        return data
+
+    def make_users_table(self) -> None:
+        data = [[j for j in range(6)] for i in range(len(self.__users_list)+1)]
+
+        for i in range(len(self.__users_list)):
+            data[i+1] = [self.__users_list[i][0], self.__users_list[i][1]]
+
         return data
 
     def item_form(self) -> Item:
@@ -498,6 +540,20 @@ class Gui:
             self.__id_dictionary.append([item_id, name.value, brand.value])
 
             self.__fleamarket.add_item(Item(name, description, condition, brand, price, category))
+
+    def __fetch_users_list(self) -> None:
+        self.__users_list.clear()
+        res = requests.get(url=f'{api_address}users/', headers={'Authorization': f'Token {self.__key}'})
+
+        if res.status_code != 200:
+            raise RuntimeError()
+
+        items = res.json()
+
+        for item in items:
+            validate('row length', item, length=2)
+
+            self.__users_list.append([item['id'], item['username']])
 
     @staticmethod
     def __build_input(input_string, builder: Callable) -> Any:  # Implemented to erase exceptions in real time.
