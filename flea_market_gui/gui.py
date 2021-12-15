@@ -211,7 +211,7 @@ class Gui:
         try:
             self.__fetch()
         except ValueError as e:
-            sg.Popup('Empty list :(')
+            sg.Popup('Error to retrive items!')
         except RuntimeError:
             sg.Popup('Connection failed!')
 
@@ -283,7 +283,7 @@ class Gui:
         try:
             self.__fetch_admin()
         except ValueError as e:
-            sg.Popup('Empty list :(')
+            sg.Popup('Error to retrive items!')
         except RuntimeError:
             sg.Popup('Connection failed!')
 
@@ -300,7 +300,7 @@ class Gui:
                             key='-TABLE-',
                             enable_events=True,
                             row_height=45)],
-                  [sg.Button('Edit', button_color='blue4', key='-edit-', disabled=True), sg.Button('Remove', button_color='red3', key='-remove-', disabled=True), sg.Button('Logout'), sg.Text('Sort by:'), sg.Combo(['price', 'condition', 'brand'], enable_events=True, key='-sortby-')]]
+                  [sg.Button('Remove', button_color='red3', key='-remove-', disabled=True), sg.Button('Users list', button_color='blue4'), sg.Button('Logout'), sg.Text('Sort by:'), sg.Combo(['price', 'condition', 'brand'], enable_events=True, key='-sortby-')]]
 
         window = sg.Window("Flea Market Home", layout)
 
@@ -310,25 +310,18 @@ class Gui:
                 break
             if event == '-TABLE-':
                 window['-remove-'].Update(disabled=False)
-                window['-edit-'].Update(disabled=False)
-            if event == '-edit-':
-                selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
-                selected_row = re.sub(r'\]$', '', selected_row)
-                if (selected_row != ''):
-                    self.__edit_item(int(selected_row))
-                    data = self.make_table()
-                    window['-TABLE-'].Update(values=data[1:][:])
-                    sg.Popup('Updated successfully!')
             if event == '-remove-':
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
                 if(selected_row != ''):
                     if(sg.popup_yes_no('Are you sure to delete the element in row ' + selected_row + ' ?') == 'Yes'):
-                        self.__delete(self.__fleamarket.item(int(selected_row)))
+                        self.__superdelete(self.__fleamarket.item(int(selected_row)))
                         self.__fleamarket.remove_item(int(selected_row))
                         data = self.make_table()
                         window['-TABLE-'].Update(values=data[1:][:])
                         sg.Popup('Item removed!')
+            if event == 'Users list':
+                print('visualizza lista da implementare')
             if event == '-sortby-':
                 if values['-sortby-'] == 'price':
                     self.__sort_by_price()
@@ -445,6 +438,17 @@ class Gui:
 
         self.__id_dictionary.pop(index)
 
+    def __superdelete(self, item: Any) -> None:
+        index = None
+        for i in range(len(self.__id_dictionary)):
+            if (item.name.value, item.brand.value) == (self.__id_dictionary[i][1], self.__id_dictionary[i][2]):
+                requests.delete(url=f'{api_address}item-moderator/edit/{self.__id_dictionary[i][0]}',
+                                headers={'Authorization': f'Token {self.__key}'})
+                index = i
+                break
+
+        self.__id_dictionary.pop(index)
+
     def __fetch(self) -> None:
         self.__fleamarket.clear()
         self.__id_dictionary.clear()
@@ -473,7 +477,7 @@ class Gui:
     def __fetch_admin(self) -> None:
         self.__fleamarket.clear()
         self.__id_dictionary.clear()
-        res = requests.get(url=f'{api_address}item/', headers={'Authorization': f'Token {self.__key}'})
+        res = requests.get(url=f'{api_address}item-moderator/', headers={'Authorization': f'Token {self.__key}'})
 
         if res.status_code != 200:
             raise RuntimeError()
