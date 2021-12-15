@@ -181,7 +181,7 @@ class App:
         print(id_to_edit)
         item = self.__read_item()
         self.__fleamarket.update_item(index - 1, item)
-        print('ci sono')
+
         self.__update(self.__fleamarket.item(index - 1), id_to_edit)
 
     def __update(self, item: Any, id: int) -> None:

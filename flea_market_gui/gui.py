@@ -206,7 +206,7 @@ class Gui:
                     self.__edit_item(int(selected_row))
                     data = self.make_table()
                     window['-TABLE-'].Update(values=data[1:][:])
-                    sg.Popup('Item edited!')
+                    sg.Popup('Updated successfully!')
             if event == '-remove-':
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
@@ -241,8 +241,6 @@ class Gui:
                            data={'name': item.name.value, 'description': item.description.value,
                               'condition': item.condition.value, 'brand': item.brand.value,
                               'price': item.price.value_in_cents, 'category': item.category})
-
-            sg.Popup('Updated successfully!')
 
     def __find_id(self, item: Item) -> int:
         for i in range(len(self.__id_dictionary)):
