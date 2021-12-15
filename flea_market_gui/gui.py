@@ -32,7 +32,8 @@ class Gui:
         window.close()
 
     def first_menu(self) -> None:
-        layout = [[sg.Button('Login', size=30)],
+        layout = [[sg.Button('Login as user', size=30)],
+                  [sg.Button('Login as admin', size=30)],
                   [sg.Button('Registration', size=30)],
                   [sg.Button('Exit', size=30)]]
 
@@ -41,9 +42,13 @@ class Gui:
         while True:
             event, values = window.read()
 
-            if event == 'Login':
+            if event == 'Login as user':
                 window.close()
-                self.login()
+                self.user_login()
+                break
+            if event == 'Login as admin':
+                window.close()
+                self.admin_login()
                 break
             if event == 'Registration':
                 window.close()
@@ -108,12 +113,12 @@ class Gui:
                         else:
                             sg.Popup('Registration completed!')
                             window.close()
-                            self.login()
+                            self.user_login()
                             break
 
         window.close()
 
-    def login(self) -> None:
+    def user_login(self) -> None:
         global username,password
 
         layout = [[sg.Text("Log In", size =(15, 1), font=40, justification='r')],
@@ -151,13 +156,57 @@ class Gui:
                         if res.status_code != 200:
                             sg.Popup('User does not exist :( Please retry!')
                             window.close()
-                            self.login()
+                            self.user_login()
+                        elif res.status_code == 200:
+                            self.__key = res.json()['key']
+                            window.close()
+                            self.user_home_menu()
+
+    def admin_login(self) -> None:
+        global username,password
+
+        layout = [[sg.Text("Log In", size =(15, 1), font=40, justification='r')],
+                [sg.Text("Username")],
+                [sg.InputText(key='-username-')],
+                [sg.Text("Password")],
+                [sg.InputText(key='-password-', password_char='*')],
+                [sg.Button('Ok'), sg.Button('Cancel')]]
+
+        window = sg.Window("Sign In", layout)
+
+        while True:
+            event,values = window.read()
+            if event == "Cancel" or event == sg.WIN_CLOSED:
+                window.close()
+                self.first_menu()
+                break
+            else:
+                if event == "Ok":
+                    username = self.__build_input(values['-username-'], Username)
+                    password = self.__build_input(values['-password-'], Password)
+
+                    if(type(username) is str or type(password) is str):
+                        err=''
+
+                        if(type(username) is str):
+                            err += 'Username not valid:\n' + username + '\n\n'
+                        if (type(password) is str):
+                            err += 'Password not valid:\n' + password
+
+                        sg.Popup(err)
+                    else:
+                        res = requests.post(url=f'{api_address}auth/login/', data={'username': username, 'password': password})
+
+                        if res.status_code != 200:
+                            sg.Popup('User does not exist :( Please retry!')
+                            window.close()
+                            self.admin_login()
 
                         self.__key = res.json()['key']
                         window.close()
-                        self.home_menu()
+                        self.admin_home_menu()
 
-    def home_menu(self) -> None:
+    def user_home_menu(self) -> None:
 
         try:
             self.__fetch()
@@ -196,6 +245,69 @@ class Gui:
                 data = self.make_table()
                 window['-TABLE-'].Update(values=data[1:][:])
                 sg.Popup('Item added successfully!')
+            if event == '-TABLE-':
+                window['-remove-'].Update(disabled=False)
+                window['-edit-'].Update(disabled=False)
+            if event == '-edit-':
+                selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
+                selected_row = re.sub(r'\]$', '', selected_row)
+                if (selected_row != ''):
+                    self.__edit_item(int(selected_row))
+                    data = self.make_table()
+                    window['-TABLE-'].Update(values=data[1:][:])
+                    sg.Popup('Updated successfully!')
+            if event == '-remove-':
+                selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
+                selected_row = re.sub(r'\]$', '', selected_row)
+                if(selected_row != ''):
+                    if(sg.popup_yes_no('Are you sure to delete the element in row ' + selected_row + ' ?') == 'Yes'):
+                        self.__delete(self.__fleamarket.item(int(selected_row)))
+                        self.__fleamarket.remove_item(int(selected_row))
+                        data = self.make_table()
+                        window['-TABLE-'].Update(values=data[1:][:])
+                        sg.Popup('Item removed!')
+            if event == '-sortby-':
+                if values['-sortby-'] == 'price':
+                    self.__sort_by_price()
+                elif values['-sortby-'] == 'condition':
+                    self.__sort_by_condition()
+                elif values['-sortby-'] == 'brand':
+                    self.__sort_by_brand()
+                data = self.make_table()
+                window['-TABLE-'].Update(values=data[1:][:])
+
+        window.close()
+
+    def admin_home_menu(self) -> None:
+
+        try:
+            self.__fetch_admin()
+        except ValueError as e:
+            sg.Popup('Empty list :(')
+        except RuntimeError:
+            sg.Popup('Connection failed!')
+
+        data = self.make_table()
+        headings = ['   NAME    ', '    DESCRIPTION     ', '    CONDITION   ', '   BRAND  ', '    PRICE   ', '    CATEGORY    ']
+
+        layout = [[sg.Table(values=data[1:][:], headings=headings,
+                            alternating_row_color='PaleVioletRed4',
+                            max_col_width=100,
+                            auto_size_columns=True,
+                            display_row_numbers=True,
+                            justification='center',
+                            num_rows=10,
+                            key='-TABLE-',
+                            enable_events=True,
+                            row_height=45)],
+                  [sg.Button('Edit', button_color='blue4', key='-edit-', disabled=True), sg.Button('Remove', button_color='red3', key='-remove-', disabled=True), sg.Button('Logout'), sg.Text('Sort by:'), sg.Combo(['price', 'condition', 'brand'], enable_events=True, key='-sortby-')]]
+
+        window = sg.Window("Flea Market Home", layout)
+
+        while True:
+            event, values = window.read()
+            if event == sg.WIN_CLOSED or event == 'Logout':
+                break
             if event == '-TABLE-':
                 window['-remove-'].Update(disabled=False)
                 window['-edit-'].Update(disabled=False)
@@ -344,7 +456,32 @@ class Gui:
         items = res.json()
 
         for item in items:
-            validate('row length', item, length=8)
+            validate('row length', item, length=7)
+
+            item_id = int(item['id'])
+            name = Name(str(item['name']))
+            description = Description(str(item['description']))
+            condition = Condition(str(item['condition']))
+            brand = Brand(str(item['brand']))
+            price = Price.create(int(int(item['price']) / 100), int(item['price']) % 100)
+            category = Category(str(item['category']))
+
+            self.__id_dictionary.append([item_id, name.value, brand.value])
+
+            self.__fleamarket.add_item(Item(name, description, condition, brand, price, category))
+
+    def __fetch_admin(self) -> None:
+        self.__fleamarket.clear()
+        self.__id_dictionary.clear()
+        res = requests.get(url=f'{api_address}item/', headers={'Authorization': f'Token {self.__key}'})
+
+        if res.status_code != 200:
+            raise RuntimeError()
+
+        items = res.json()
+
+        for item in items:
+            validate('row length', item, length=7)
 
             item_id = int(item['id'])
             name = Name(str(item['name']))

@@ -144,7 +144,7 @@ class App:
 
         items = res.json()
         for item in items:
-            validate('row length', item, length=8)
+            validate('row length', item, length=7)
 
             item_id = int(item['id'])
             name = Name(str(item['name']))
