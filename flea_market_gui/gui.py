@@ -33,10 +33,11 @@ class Gui:
         window.close()
 
     def first_menu(self) -> None:
-        layout = [[sg.Button('Login as user', size=30)],
-                  [sg.Button('Login as admin', size=30)],
-                  [sg.Button('Registration', size=30)],
-                  [sg.Button('Exit', size=30)]]
+        layout = [[sg.Image(filename='../resources/logo.png')],
+                  [sg.Button('Login as user', size=67)],
+                  [sg.Button('Login as admin', size=67)],
+                  [sg.Button('Registration', size=67)],
+                  [sg.Button('Exit', size=67)]]
 
         window = sg.Window("FleaMarket", layout)
 
@@ -64,12 +65,15 @@ class Gui:
         global username, password
 
         layout = [[sg.Text("Sign Up", size =(15, 1), font=40, justification='c')],
-                 [sg.Text("Username", size =(13, 1), font=14), sg.InputText(key='-username-', font=14)],
-                 [sg.Text("E-mail", size=(13, 1), font=14), sg.InputText(key='-email-', font=14)],
-                 [sg.Text("Password", size =(13, 1), font=14), sg.InputText(key='-password-', font=14, password_char='*')],
+                 [sg.Text("Username")],
+                 [sg.InputText(key='-username-')],
+                 [sg.Text("E-mail")],
+                 [sg.InputText(key='-email-')],
+                 [sg.Text("Password")],
+                 [sg.InputText(key='-password-', password_char='*')],
                  [sg.Button("Submit"), sg.Button("Cancel")]]
 
-        window = sg.Window("Sign Up", layout)
+        window = sg.Window("FleaMarket", layout)
 
         while True:
             event,values = window.read()
@@ -120,16 +124,14 @@ class Gui:
         window.close()
 
     def user_login(self) -> None:
-        global username,password
-
-        layout = [[sg.Text("Log In", size =(15, 1), font=40, justification='r')],
+        layout = [[sg.Text("User Sign in", size =(15, 1), font=40, justification='r')],
                 [sg.Text("Username")],
                 [sg.InputText(key='-username-')],
                 [sg.Text("Password")],
                 [sg.InputText(key='-password-', password_char='*')],
                 [sg.Button('Ok'), sg.Button('Cancel')]]
 
-        window = sg.Window("Sign In", layout)
+        window = sg.Window("FleaMarket", layout)
 
         while True:
             event,values = window.read()
@@ -164,16 +166,14 @@ class Gui:
                             self.user_home_menu()
 
     def admin_login(self) -> None:
-        global username,password
-
-        layout = [[sg.Text("Log In", size =(15, 1), font=40, justification='r')],
+        layout = [[sg.Text("Admin Sign In", size =(15, 1), font=40, justification='r')],
                 [sg.Text("Username")],
                 [sg.InputText(key='-username-')],
                 [sg.Text("Password")],
                 [sg.InputText(key='-password-', password_char='*')],
                 [sg.Button('Ok'), sg.Button('Cancel')]]
 
-        window = sg.Window("Sign In", layout)
+        window = sg.Window("FleaMarket", layout)
 
         while True:
             event,values = window.read()
@@ -217,6 +217,7 @@ class Gui:
             sg.Popup('Connection failed!')
 
         data = self.make_table()
+
         headings = ['   NAME    ', '    DESCRIPTION     ', '    CONDITION   ', '   BRAND  ', '    PRICE   ', '    CATEGORY    ']
 
         layout = [[sg.Table(values=data[1:][:], headings=headings,
@@ -231,24 +232,33 @@ class Gui:
                             row_height=45)],
                   [sg.Button('Add', button_color='green4'), sg.Button('Edit', button_color='blue4', key='-edit-', disabled=True), sg.Button('Remove', button_color='red3', key='-remove-', disabled=True), sg.Button('Logout'), sg.Text('Sort by:'), sg.Combo(['price', 'condition', 'brand'], enable_events=True, key='-sortby-')]]
 
-        window = sg.Window("Flea Market Home", layout)
+        window = sg.Window("FleaMarket", layout)
 
         while True:
             event, values = window.read()
+
+            ############################ LOGOUT BUTTON ############################
             if event == sg.WIN_CLOSED or event == 'Logout':
                 break
+
+            ############################ ADD BUTTON ############################
             if event == 'Add':
                 window['-edit-'].Update(disabled=True)
                 window['-remove-'].Update(disabled=True)
                 new_item = self.item_form()
-                self.__fleamarket.add_item(new_item)
-                self.__store(new_item)
-                data = self.make_table()
-                window['-TABLE-'].Update(values=data[1:][:])
-                sg.Popup('Item added successfully!')
+                if new_item is not None:
+                    self.__fleamarket.add_item(new_item)
+                    self.__store(new_item)
+                    data = self.make_table()
+                    window['-TABLE-'].Update(values=data[1:][:])
+                    sg.Popup('Item added successfully!')
+
+            ############################ TABLE EVENT ############################
             if event == '-TABLE-':
                 window['-remove-'].Update(disabled=False)
                 window['-edit-'].Update(disabled=False)
+
+            ############################ EDIT BUTTON ############################
             if event == '-edit-':
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
@@ -256,7 +266,8 @@ class Gui:
                     self.__edit_item(int(selected_row))
                     data = self.make_table()
                     window['-TABLE-'].Update(values=data[1:][:])
-                    sg.Popup('Updated successfully!')
+
+            ############################ REMOVE BUTTON ############################
             if event == '-remove-':
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
@@ -267,6 +278,8 @@ class Gui:
                         data = self.make_table()
                         window['-TABLE-'].Update(values=data[1:][:])
                         sg.Popup('Item removed!')
+
+            ############################ SORTBY EVENT ############################
             if event == '-sortby-':
                 if values['-sortby-'] == 'price':
                     self.__sort_by_price()
@@ -303,14 +316,20 @@ class Gui:
                             row_height=45)],
                   [sg.Button('Remove', button_color='red3', key='-remove-', disabled=True), sg.Button('Users list', button_color='blue4'), sg.Button('Logout'), sg.Text('Sort by:'), sg.Combo(['price', 'condition', 'brand'], enable_events=True, key='-sortby-')]]
 
-        window = sg.Window("Flea Market Home", layout)
+        window = sg.Window("FleaMarket", layout)
 
         while True:
             event, values = window.read()
+
+            ############################ LOGOUT BUTTON ############################
             if event == sg.WIN_CLOSED or event == 'Logout':
                 break
+
+            ############################ TABLE EVENT ############################
             if event == '-TABLE-':
                 window['-remove-'].Update(disabled=False)
+
+            ############################ REMOVE BUTTON ############################
             if event == '-remove-':
                 selected_row = re.sub(r'^\[', '', str(values['-TABLE-']))
                 selected_row = re.sub(r'\]$', '', selected_row)
@@ -321,8 +340,12 @@ class Gui:
                         data = self.make_table()
                         window['-TABLE-'].Update(values=data[1:][:])
                         sg.Popup('Item removed!')
+
+            ############################ USER LIST BUTTON ############################
             if event == 'Users list':
                 self.__show_user_list()
+
+            ############################ SORTBY EVENT ############################
             if event == '-sortby-':
                 if values['-sortby-'] == 'price':
                     self.__sort_by_price()
@@ -371,8 +394,10 @@ class Gui:
     def __edit_item(self, index: int) -> None:
         id_to_edit = self.__find_id(self.__fleamarket.item(index))
         item = self.item_form()
-        self.__fleamarket.update_item(index, item)
-        self.__update(self.__fleamarket.item(index), id_to_edit)
+        if item is not None:
+            self.__fleamarket.update_item(index, item)
+            self.__update(self.__fleamarket.item(index), id_to_edit)
+            sg.Popup('Updated successfully!')
 
     def __update(self, item: Any, id: int) -> None:
             requests.patch(url=f'{api_address}item/edit/' + str(id)+ '/',
@@ -388,9 +413,16 @@ class Gui:
 
     def make_table(self) -> None:
         data = [[j for j in range(6)] for i in range(self.__fleamarket.items()+1)]
+
         for i in range(self.__fleamarket.items()):
             item = self.__fleamarket.item(i)
-            data[i+1] = [item.name, item.description, item.condition, item.brand, item.price, item.category.value]
+            if(item.condition.value == '0'):
+                data[i+1] = [item.name, item.description, 'As new', item.brand, item.price, item.category.value]
+            elif (item.condition.value == '1'):
+                data[i+1] = [item.name, item.description, 'Good condition', item.brand, item.price, item.category.value]
+            elif (item.condition.value == '2'):
+                data[i+1] = [item.name, item.description, 'Acceptable condition', item.brand, item.price, item.category.value]
+
         return data
 
     def make_users_table(self) -> None:
@@ -402,31 +434,44 @@ class Gui:
         return data
 
     def item_form(self) -> Item:
-        layout = [[sg.Text("Add item", size=(15, 1), font=40, justification='r')],
-                  [sg.Text("Name"), sg.InputText(key='-name-')],
-                  [sg.Text("Description"), sg.InputText(key='-description-')],
-                  [sg.Text("Condition (0 if as new, 1 if in good condition, 2 if in acceptable condition)"), sg.InputText(key='-condition-')],
-                  [sg.Text("Brand"), sg.InputText(key='-brand-')],
-                  [sg.Text("Price"), sg.InputText(key='-price-')],
-                  [sg.Text("Category"), sg.InputText(key='-category-')],
-                  [sg.Button('Confirm')]]
+        layout = [[sg.Text("Add new item", size=(15, 1), font=40, justification='r')],
+                  [sg.Text("Name")],
+                  [sg.InputText(key='-name-')],
+                  [sg.Text("Description")],
+                  [sg.InputText(key='-description-')],
+                  [sg.Text("Condition")],
+                  [sg.Combo(['As new', 'Good condition', 'Acceptable condition'], key='-condition-')],
+                  [sg.Text("Brand")],
+                  [sg.InputText(key='-brand-')],
+                  [sg.Text("Price")],
+                  [sg.InputText(key='-price-')],
+                  [sg.Text("Category")],
+                  [sg.InputText(key='-category-')],
+                  [sg.Button('Confirm', button_color='green4'), sg.Button('Cancel', button_color='red3')]]
 
-        window = sg.Window('Add item form', layout)
+        window = sg.Window('FleaMarket', layout)
 
         while True:
             event, values = window.read()
 
             if event == 'Cancel' or event == sg.WIN_CLOSED:
-                window.close()
                 break
             else:
                 if event == "Confirm":
                     name = self.__build_input(values['-name-'], Name)
                     description = self.__build_input(values['-description-'], Description)
-                    condition = self.__build_input(values['-condition-'], Condition)
                     brand = self.__build_input(values['-brand-'], Brand)
                     price = self.__build_input(values['-price-'], Price.parse)
                     category = self.__build_input(values['-category-'], Category)
+
+                    if values['-condition-'] == 'As new':
+                        condition = self.__build_input('0', Condition)
+                    elif values['-condition-'] == 'Good condition':
+                        condition = self.__build_input('1', Condition)
+                    elif values['-condition-'] == 'Acceptable condition':
+                        condition = self.__build_input('2', Condition)
+                    else:
+                        condition = self.__build_input(values['-condition-'], Condition)
 
                     if (type(name) is str or type(description) is str or type(condition) is str or type(brand) is str or type(price) is str or type(category) is str):
                         err = ''
