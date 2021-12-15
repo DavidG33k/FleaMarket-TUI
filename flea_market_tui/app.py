@@ -34,6 +34,7 @@ class App:
             .with_entry(Entry.create('3', 'Sort by Price', on_selected=lambda: self.__sort_by_price())) \
             .with_entry(Entry.create('4', 'Sort by Condition', on_selected=lambda: self.__sort_by_condition())) \
             .with_entry(Entry.create('5', 'Sort by Brand', on_selected=lambda: self.__sort_by_brand())) \
+            .with_entry(Entry.create('6', 'Edit Item', on_selected=lambda: self.__edit_item())) \
             .with_entry(Entry.create('0', 'Exit', on_selected=lambda: print('Exited!'), is_exit=True)) \
             .build()
 
@@ -143,7 +144,7 @@ class App:
 
         items = res.json()
         for item in items:
-            validate('row length', item, length=7)
+            validate('row length', item, length=8)
 
             item_id = int(item['id'])
             name = Name(str(item['name']))
@@ -166,15 +167,36 @@ class App:
 
         self.__id_dictionary.append([req.json()['id'], item.name.value, item.brand.value])
 
-    def __update(self, item: Any) -> None:
+    def __edit_item(self) -> None:
+        def builder(value: str) -> int:
+            validate('value', int(value), min_value=0, max_value=self.__fleamarket.items())
+            return int(value)
+
+        index = self.__read_input('Index (0 to cancel)', builder)
+        if index == 0:
+            print('Cancelled!')
+            return
+
+        id_to_edit = self.__find_id(self.__fleamarket.item(index - 1))
+        print(id_to_edit)
+        item = self.__read_item()
+        self.__fleamarket.update_item(index - 1, item)
+        print('ci sono')
+        self.__update(self.__fleamarket.item(index - 1), id_to_edit)
+
+    def __update(self, item: Any, id: int) -> None:
+            requests.patch(url=f'{api_address}item/edit/' + str(id)+ '/',
+                           headers={'Authorization': f'Token {self.__key}'},
+                           data={'name': item.name.value, 'description': item.description.value,
+                              'condition': item.condition.value, 'brand': item.brand.value,
+                              'price': item.price.value_in_cents, 'category': item.category})
+
+            print('Updated successfully!')
+
+    def __find_id(self, item: Item) -> int:
         for i in range(len(self.__id_dictionary)):
             if (item.name.value, item.brand.value) == (self.__id_dictionary[i][1], self.__id_dictionary[i][2]):
-                requests.patch(url=f'{api_address}item/edit/{self.__id_dictionary[i][0]}',
-                               headers={'Authorization': f'Token {self.__key}'},
-                               data={'name': item.name.value, 'description': item.description.value,
-                                  'condition': item.condition.value, 'brand': item.brand.value,
-                                  'price': item.price.value_in_cents, 'category': item.category})
-                break
+                return int(self.__id_dictionary[i][0])
 
     def __delete(self, item: Any) -> None:
         index = None

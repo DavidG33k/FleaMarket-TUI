@@ -200,3 +200,9 @@ class FleaMarket:
 
     def clear(self) -> None:
         self.__items.clear()
+
+    def update_item(self, index: int, item: Item):
+        validate('index', index, min_value=0, max_value=self.items() - 1)
+        self.remove_item(index)
+
+        self.__items.insert(index, Item(item.name, item.description, item.condition, item.brand, item.price, item.category))
