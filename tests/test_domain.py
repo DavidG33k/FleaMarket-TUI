@@ -3,6 +3,7 @@ from valid8 import ValidationError
 
 from flea_market_tui.domain import FleaMarket, Name, Description, Condition, Brand, Price, Category, Email, Username, Password, Item
 
+
 def test_condition_value():
     wrong_values = ['', 'no', 'error', '1/1337','javascript:alert(1)']
     for value in wrong_values:
@@ -12,6 +13,7 @@ def test_condition_value():
     correct_values = ['1', '2', '0']
     for value in correct_values:
         assert Condition(value).value == value
+
 
 def test_condition_str():
     assert Condition('1').__str__() == '1'
@@ -23,12 +25,14 @@ def test_name_value():
         with pytest.raises(ValidationError):
             Name(value)
 
-    correct_values = ['BEL PC USATO', 'GAMEBOY', 'A' * 30]
+    correct_values = ['Bel Pc', 'GAMEBOY', 'A' * 30]
     for value in correct_values:
         assert Name(value).value == value
 
+
 def test_name_str():
     assert Name('thinkpad').__str__() == 'thinkpad'
+
 
 def test_description_value():
     wrong_values = ['TE/ST$ DESCRIZION^$E', '<script>alert()</script>', 'SPECI%ALE', 'A' * 201]
@@ -40,8 +44,10 @@ def test_description_value():
     for value in correct_values:
         assert Description(value).value == value
 
+
 def test_description_str():
     assert Description('thinkpad buono').__str__() == 'thinkpad buono'
+
 
 def test_brand_value():
     wrong_values = ['TE/ST$ BRAND^', '<script>alert()</script>', 'SPECI%ALE', 'A' * 21]
@@ -53,8 +59,10 @@ def test_brand_value():
     for value in correct_values:
         assert Brand(value).value == value
 
+
 def test_brand_str():
     assert Brand('Lenovo').__str__() == 'Lenovo'
+
 
 def test_category_value():
     wrong_values = ['', 'NOT%GOOD', '<script>alert()</script>', 'SomeError55584', 'NotGOod /1337', 'A' * 31]
@@ -66,8 +74,10 @@ def test_category_value():
     for value in correct_values:
         assert Category(value).value == value
 
-def test_Category_str():
+
+def test_category_str():
     assert Category('Casa').__str__() == 'Casa'
+
 
 def test_email_value():
     wrong_values = ['', 'sk@skrt.', '_test@gmail.com', 'asdasd@asd3290.com', '...@outlook.com',
@@ -81,8 +91,10 @@ def test_email_value():
     for value in correct_values:
         assert Email(value).value == value
 
+
 def test_email_str():
     assert Email('abcd@gmail.com').__str__() == 'abcd@gmail.com'
+
 
 def test_username_value():
     wrong_values = ['', 'à', '<script>alert()</script>', ' spazio ', '%', 'A' * 31]
@@ -94,8 +106,10 @@ def test_username_value():
     for value in correct_values:
         assert Username(value).value == value
 
+
 def test_username_str():
     assert Username('SpasticMMonkey').__str__() == 'SpasticMMonkey'
+
 
 def test_password_value():
     wrong_values = ['', '<script>alert()</script>','tantierrori##', 'èàèàèàèàèà', '!?abcd$&/',
@@ -108,6 +122,7 @@ def test_password_value():
     for value in correct_values:
         assert Password(value).value == value
 
+
 def test_password_str():
     assert Password('Passwd123').__str__() == 'Passwd123'
 
@@ -116,13 +131,16 @@ def test_negative_price():
     with pytest.raises(ValidationError):
         Price.create(-1, 0)
 
+
 def test_price_no_init():
     with pytest.raises(ValidationError):
         Price(1)
 
+
 def test_price_add():
     assert Price.create(24, 99).add(Price.create(0, 1)) == Price.create(25)
     assert Price.create(244, 99).add(Price.create(0, 58)) == Price.create(245,57)
+
 
 def test_price_no_cents():
     assert Price.create(1, 0) == Price.create(1)
@@ -134,12 +152,14 @@ def test_price_parse():
 def test_price_str():
     assert str(Price.create(9, 99)) == '9.99'
 
+
 def test_price_euro():
     assert Price.create(11, 22).euro == 11
 
 
 def test_price_cents():
     assert Price.create(11, 22).cents == 22
+
 
 @pytest.fixture
 def items():
@@ -149,9 +169,10 @@ def items():
         Item(Name('ChronoTrigger'), Description(""),Condition('1'), Brand('SquareSoft'), Price.create(6666), Category('Videogiochi')),
         Item(Name('Snes'), Description("Prodotto vintage"), Condition('2'), Brand('Nintendo'), Price.create(3333), Category('Console')),
         Item(Name('Scopa'), Description(""), Condition('0'), Brand('Mastrolindo'), Price.create(363636), Category('Casa e Pulizia')),
-        Item(Name('thinkpad x230'), Description("stolen from the Defcon"),Condition('2'), Brand('Lenovo'),Price.create(636363), Category('Computer')),
+        Item(Name('thinkpad'), Description("stolen from the Defcon"),Condition('2'), Brand('Lenovo'),Price.create(636363), Category('Computer')),
 
     ]
+
 
 def test_Fleamarket_add_items(items):
     market = FleaMarket()
@@ -161,6 +182,7 @@ def test_Fleamarket_add_items(items):
         index += 1
         assert market.items() == index
         assert market.item(index - 1) == i
+
 
 def test_Fleamarket_remove_item(items):
     market = FleaMarket()
@@ -181,6 +203,7 @@ def test_Fleamarket_remove_item(items):
         market.remove_item(0)
     assert market.items() == 0
 
+
 def test_Fleamarket_sort_by_price(items):
     market = FleaMarket()
     market.add_item(items[0])
@@ -188,12 +211,14 @@ def test_Fleamarket_sort_by_price(items):
     market.sort_by_price()
     assert market.item(0) == items[0]
 
+
 def test_Fleamarket_sort_by_condition(items):
     market = FleaMarket()
     market.add_item(items[0])
     market.add_item(items[1])
     market.sort_by_condition()
     assert market.item(0) == items[1]
+
 
 def test_Fleamarket_sort_by_brand(items):
     market = FleaMarket()
