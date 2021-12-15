@@ -25,7 +25,7 @@ def test_name_value():
         with pytest.raises(ValidationError):
             Name(value)
 
-    correct_values = ['BelPc', 'GAMEBOY', 'A' * 30]
+    correct_values = ['Bel Pc', 'GAMEBOY', 'A' * 30]
     for value in correct_values:
         assert Name(value).value == value
 
