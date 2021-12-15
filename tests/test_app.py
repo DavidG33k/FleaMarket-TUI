@@ -170,7 +170,8 @@ def test_load_fleamarket_app(mocked_print, mocked_input, mocked_requests_get, mo
                                                              'condition': 0,
                                                              'brand': 'nike',
                                                              'price': 200,
-                                                             'category': 'ciccio'}])])
+                                                             'category': 'ciccio',
+                                                             }])])
 @patch('builtins.input',
        side_effect=['1', 'udonto', 'fazio9898',  '2', '1'])
 @patch('builtins.print')
