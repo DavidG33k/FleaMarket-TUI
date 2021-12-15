@@ -125,9 +125,9 @@ class App:
             try:
                 self.__fetch()
             except ValueError as e:
-                print('Continuing with an empty list of items...')
+                print('Empty list :(')
             except RuntimeError:
-                print('Failed to connect to the server!')
+                print('Connection failed!')
                 return
 
             self.__home_menu.run()
