@@ -41,7 +41,7 @@ def test_app_sign_in_exit(mocked_print, mocked_input):
 
 
 @patch('requests.post', side_effect=[mock_response_dict(400)])
-@patch('builtins.input', side_effect=['1', 'udonto', 'sbagliato'])
+@patch('builtins.input', side_effect=['1', 'udonto', 'wrongpassw'])
 @patch('builtins.print')
 def test_app_sign_in_with_wrong_parameters(mocked_print, mocked_input, mocked_requests_post):
     with patch('builtins.open', mock_open()):
@@ -80,7 +80,7 @@ def test_app_registration_user(mocked_print, mocked_input, mocked_requests_post)
 
 
 @patch('requests.post', side_effect=[mock_response_dict(400)])
-@patch('builtins.input', side_effect=['2', 'pallas', 'pallas@gmail.com', 'antony98'])
+@patch('builtins.input', side_effect=['2', 'udonto', 'pallas@gmail.com', 'fazio9898'])
 @patch('builtins.print')
 def test_app_registration_user_already_exist(mocked_print, mocked_input, mocked_requests_post):
     with patch('builtins.open', mock_open()):
@@ -91,7 +91,7 @@ def test_app_registration_user_already_exist(mocked_print, mocked_input, mocked_
 
 @patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
 @patch('requests.get', side_effect=[mock_response_dict(200)])
-@patch('builtins.input', side_effect=['1', 'cazzo', 'antony98', '0', '0'])
+@patch('builtins.input', side_effect=['1', 'wrongusername', 'fazio9898', '0', '0'])
 @patch('builtins.print')
 def test_app_sign_in_resists_wrong_username(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
     with patch('builtins.open', mock_open()):
@@ -105,7 +105,7 @@ def test_app_sign_in_resists_wrong_username(mocked_print, mocked_input, mocked_r
 
 @patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
 @patch('requests.get', side_effect=[mock_response_dict(200)])
-@patch('builtins.input', side_effect=['1', 'pallas', 'commonPass', '0', '0'])
+@patch('builtins.input', side_effect=['1', 'udonto', 'commonPass', '0', '0'])
 @patch('builtins.print')
 def test_app_sign_in_resists_wrong_password(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
     with patch('builtins.open', mock_open()):
@@ -118,7 +118,7 @@ def test_app_sign_in_resists_wrong_password(mocked_print, mocked_input, mocked_r
 
 @patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
 @patch('requests.get', side_effect=[mock_response(200)])
-@patch('builtins.input', side_effect=['1', 'pallas', 'antony98', '0', '0'])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898', '0', '0'])
 @patch('builtins.print')
 def test_app_item_list(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
     with patch('builtins.open', mock_open()):
@@ -192,3 +192,51 @@ def test_app_remove_item_operation_cancelled(mocked_print, mocked_input, mocked_
         main('__main__')
     assert list(filter(lambda x: 'Cancelled!' in str(x), mocked_print.mock_calls))
 
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('requests.get', side_effect=[mock_response(200)])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898', '6', '0'])
+@patch('builtins.print')
+def test_app_edit_item_operation_cancelled(mocked_print, mocked_input, mocked_requests_get, mocked_requests_post):
+    with patch('builtins.open', mock_open()) as mocked_open:
+        App().run()
+    assert list(filter(lambda x: 'Cancelled!' in str(x), mocked_print.mock_calls))
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898', '3'])
+def test_sort_by_price(mocked_input, mocked_requests_post):
+    with patch('builtins.open'):
+        App().run()
+    mocked_requests_post.assert_called()
+    mocked_input.assert_called()
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898', '4'])
+def test_sort_by_condition(mocked_input, mocked_requests_post):
+    with patch('builtins.open'):
+        App().run()
+    mocked_requests_post.assert_called()
+    mocked_input.assert_called()
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'})])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898', '5'])
+def test_sort_by_brand(mocked_input, mocked_requests_post):
+    with patch('builtins.open'):
+        App().run()
+    mocked_requests_post.assert_called()
+    mocked_input.assert_called()
+
+
+@patch('requests.post', side_effect=[mock_response_dict(200, {'key': 'e2cd07584740609b17b0b0f2ce6787452aa801e0'}),
+                                     mock_response_dict(200)])
+@patch('builtins.input', side_effect=['1', 'udonto', 'fazio9898', '0'])
+@patch('builtins.print')
+def test_logout(mocked_print, mocked_input, mocked_requests_post):
+    with patch('builtins.open'):
+        App().run()
+    mocked_requests_post.assert_called()
+    mocked_input.assert_called()
+    mocked_print.assert_any_call("Exited!")

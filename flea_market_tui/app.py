@@ -178,7 +178,6 @@ class App:
             return
 
         id_to_edit = self.__find_id(self.__fleamarket.item(index - 1))
-        print(id_to_edit)
         item = self.__read_item()
         self.__fleamarket.update_item(index - 1, item)
         self.__update(self.__fleamarket.item(index - 1), id_to_edit)
