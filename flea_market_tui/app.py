@@ -62,6 +62,17 @@ class App:
 
         if res.status_code == 400:
             print('Not Valid new Users!')
+            err = ''
+            if res.json().get('username') is not None:
+                err += 'Username not valid: ' + str(res.json().get('username')) + '\n\n'
+            if res.json().get('email') is not None:
+                err += 'Email not valid: ' + str(res.json().get('email')) + '\n\n'
+            if res.json().get('password1') is not None:
+                err += 'Password not valid: ' + str(res.json().get('password1')) + '\n\n'
+            if res.json().get('non_field_errors') is not None:
+                err += 'Fields not valid: ' + str(res.json().get('non_field_errors'))
+
+            print(err)
         else:
             print('Registration completed!')
 

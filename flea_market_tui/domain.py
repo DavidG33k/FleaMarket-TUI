@@ -153,7 +153,7 @@ class Password:
 
     def __post_init__(self):
         validate_dataclass(self)
-        validate('value', self.value, min_len=8, max_len=25, custom=pattern(r'[A-Za-z0-9\-\_\@\!\?\.]+'))  # r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!\#*?&])[A-Za-z\d@$!\#*?&]{8,25}$'
+        validate('value', self.value, min_len=8, max_len=25, custom=pattern(r'[A-Za-z0-9\-\_\@\!\?\.]+'))
 
     def __str__(self):
         return str(self.value)
